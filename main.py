@@ -16,26 +16,27 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
 async def help(update, context):
     await update.message.reply_text(
-        "Я бот справочник по Python.")
+        f"Я бот справочник по Python.")
 
 
 async def data(update, context):
     await update.message.reply_text(
-        "Адрес: г. Москва, ул. Льва Толстого, 16")
+        f"Адрес: г. Москва, ул. Льва Толстого, 16")
 
 
 async def interpreter(update, context):
-    await update.message.reply_text("Функция Интерпритатор в разработке")
+    await update.message.reply_text(
+        f"Функция Интерпритатор в разработке")
 
 
 async def reg(update, context):
     await update.message.reply_text(
-        "Функция Регистрация в разработке")
+        f"Функция Регистрация в разработке")
 
 
 async def fav(update, context):
     await update.message.reply_text(
-        "Функция Избранное в разработке")
+        f"Функция Избранное в разработке")
 
 
 def main():
