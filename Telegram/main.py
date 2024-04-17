@@ -89,7 +89,8 @@ async def data_response(update, context):
             # read line 4 and 7
             if i in line_numbers:
                 lines.append(line.strip())
-    await update.message.reply_text(lines)
+    un = '\n'.join(lines)
+    await update.message.reply_text(un)
 
 async def menu(update, context):
     await update.message.reply_text("Возвращаю вас в меню...")
