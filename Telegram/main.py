@@ -2,7 +2,7 @@ import logging
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler
 from telegram import ReplyKeyboardMarkup
 from config import BOT_TOKEN
-from requests import post
+from requests import post, get
 from io import StringIO
 
 logging.basicConfig(
@@ -49,10 +49,12 @@ async def interpreter(update, context):
 
 
 async def interpreter_response(update, context):
+    user = update.message.from_user.username
     req_text = update.message.text
     file = StringIO(req_text)
-    user_reply = post('http://127.0.0.1:8080/api/interpreter/krindy', files={'key': file}).text
+    user_reply = post(f'http://127.0.0.1:8080/api/interpreter/{user}', files={'key': file}).text
     await update.message.reply_text(user_reply)
+
 
 async def data_response(update, context):
     global line_numbers
@@ -92,34 +94,40 @@ async def data_response(update, context):
     un = '\n'.join(lines)
     await update.message.reply_text(un)
 
+
 async def menu(update, context):
     await update.message.reply_text("Возвращаю вас в меню...")
     return ConversationHandler.END
 
 
-async def reg(update, context):
-    await update.message.reply_text(
-        f"Функция Регистрация в разработке")
-
-
 async def fav(update, context):
     await update.message.reply_text(
-        f"Функция Избранное в разработке")
+        "Добро пожаловать в ваши сохранённые коды!\n"
+        "Чтобы выйти, используйте /menu\n"
+        "Выберите дату из списка ниже:")
+    user = update.message.from_user.username
+    un = get(f'http://127.0.0.1:8080/api/interpreter_history/{user}').json().get('main', None)
+    await update.message.reply_text(un)
+    return 3
+
+
+
+async def fav_response(update, context):
+    user = update.message.from_user.username
+    user_date = update.message.text
+    un2 = get(f'http://127.0.0.1:8080/api/interpreter_history/search/{user_date}/{user}').text
+    await update.message.reply_text(un2)
 
 
 def main():
     application = Application.builder().token(BOT_TOKEN).build()
     conv_handler = ConversationHandler(
-        # Точка входа в диалог.
-        # В данном случае — команда /start. Она задаёт первый вопрос.
-        entry_points=[CommandHandler('interpreter', interpreter), CommandHandler('data', data)],
-
-        # Состояние внутри диалога.
-        # Вариант с двумя обработчиками, фильтрующими текстовые сообщения.
+        entry_points=[CommandHandler('interpreter', interpreter), CommandHandler('data', data),
+                      CommandHandler('fav', fav)],
         states={
-            # Функция читает ответ на первый вопрос и задаёт второй.
             1: [MessageHandler(filters.TEXT & ~filters.COMMAND, interpreter_response)],
-            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, data_response)]},
+            2: [MessageHandler(filters.TEXT & ~filters.COMMAND, data_response)],
+            3: [MessageHandler(filters.TEXT & ~filters.COMMAND, fav_response)]},
 
         # Точка прерывания диалога. В данном случае — команда /stop.
         fallbacks=[CommandHandler('menu', menu)]
@@ -129,7 +137,6 @@ def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("data", data))
     application.add_handler(CommandHandler("interpreter", interpreter))
-    application.add_handler(CommandHandler("reg", reg))
     application.add_handler(CommandHandler("fav", fav))
     application.add_handler(CommandHandler("help", help))
     application.run_polling()
