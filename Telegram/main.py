@@ -12,7 +12,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 reply_keyboard = [['/data', '/interpreter'],
-                  ['/reg', '/fav']]
+                  ['/fav']]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 
 
